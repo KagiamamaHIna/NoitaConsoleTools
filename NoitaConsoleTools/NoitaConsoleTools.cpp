@@ -7,6 +7,10 @@
 #include <map>
 #include <direct.h>
 #include <io.h>
+#include <algorithm>
+#include <chrono>
+#include <thread>
+#include <atomic>
 
 using namespace std;
 bool isNumber(const string& str) //判断你输入的字符串是否由纯数字组成
@@ -82,6 +86,37 @@ int getModMax(const char* speaky, int modMax, int outInt = 0) { //自定义一�
     }
 }
 
+string toLower(string par) {
+    transform(par.begin(), par.end(), par.begin(), ::tolower);
+    return par;
+}
+
+string toUpper(string par) {
+    transform(par.begin(), par.end(), par.begin(), ::toupper);
+    return par;
+}
+
+string getFileName(string Path) {//从绝对路径里面获得文件名称
+    int pos = Path.rfind("\\");
+    string buf = "";
+    for (int i = pos + 1; i < Path.length(); i++) {
+        buf += Path[i];
+    }
+    return buf;
+}
+
+string slashSwap(string str) { // 把\转换成/
+    string buf = "";
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] != '\\') {
+            buf += str[i];
+        }
+        else {
+            buf += '\\';
+        }
+    }
+    return buf;
+}
 
 class cfgClass {//配置文件读取
 public:
@@ -190,7 +225,7 @@ private:
     vector<string> cfgNumInt1;
     vector<int> cfgNumInt2;//累加重复次数的
 };
-/* 已完成，但是目前没有用所以注释掉
+
 class translationsLoad {
 public:
     translationsLoad() {//en,ru,pt-br,es-es,de,fr-fr,it,pl,zh-cn,jp,ko
@@ -268,7 +303,223 @@ public:
 private:
     map<string, vector<string>>tranMap;//翻译表
     map<string, int>laug;//语言文本对应数组下标值
-};*/
+};
+
+class MagicWand {
+private:
+    int getFrNumber(string par) {//换算负数或者是正数
+        string bufParStr = "";
+        if (par[0] == '-') {
+            for (int i = 1; i < par.length(); i++) {
+                bufParStr += par[i];
+            }
+            return -stoi(bufParStr);
+        }
+        return stoi(par);
+    }
+public:
+    void PrintWandList() {
+        printf("法杖当前蓝量:%s\n", mana.c_str());
+        printf("法杖蓝量上限:%s\n", manaMax.c_str());
+        printf("法杖回蓝速度:%s\n", manaChargeSpeed.c_str());
+        printf("法杖贴图在data.wak中的路径:%s\n", spriteFile.c_str());
+        if (getFrNumber(reloadTime) < 0) {
+            printf("充能延迟:%.2f(秒) %s(帧)\n", (float)getFrNumber(reloadTime) / 60, reloadTime.c_str());
+        }
+        else {
+            printf("充能延迟:+%.2f(秒) +%s(帧)\n", (float)getFrNumber(reloadTime) / 60, reloadTime.c_str());
+        }
+        if (getFrNumber(fireRateWait) < 0) {
+            printf("施放延迟:%.2f(秒) %s(帧)\n", (float)getFrNumber(fireRateWait) / 60, fireRateWait.c_str());
+        }
+        else {
+            printf("施放延迟:+%.2f(秒) +%s(帧)\n", (float)getFrNumber(fireRateWait) / 60, fireRateWait.c_str());
+        }
+        printf("法术容量:%s\n", deckCapacity.c_str());
+        printf("投射物速度基础倍率:%sx\n",speedMultiplier.c_str());
+        printf("散射角度:%s\n", spreadDegrees.c_str());
+        printf("是否乱序:%s\n", stateShuffled.c_str());
+        printf("法术列表:");
+        for (int i = 0; i < wandSpell.size(); i++) {
+            printf("%s ", wandSpell[i].c_str());
+        }
+        if (wandSpell.size() == 0) {
+            printf("无法术");
+        }
+        printf("\n");
+    }
+    string mana;//蓝
+    string manaMax;//蓝上限
+    string manaChargeSpeed;//回蓝速度
+    string spriteFile;//法杖贴图
+    string reloadTime;//充能延迟
+    string deckCapacity;//法杖容量
+    string fireRateWait;//施放延迟
+    string stateShuffled;//0为非乱序
+    string speedMultiplier;//投射物速度基础倍率
+    string spreadDegrees;//散射角度
+    vector<string> wandSpell;
+};
+
+class BoneFileRead {
+public:
+    BoneFileRead(string path, translationsLoad& tranObj) {//一坨四
+        string SwapPath = slashSwap(path);
+        getFileNames(SwapPath, files);
+        string bufStr;//读行缓存
+        fstream cfg;
+        bool WirteMode = false;//开始写入的标志
+        for (int i = 0; i < files.size(); i++) {
+            bool WirteSpell = true;//判断是否需要写入法术
+            bool WirteReload = false;
+            bool WirteSprite = true;
+            bool WirteMana = true;
+            bool WirteSpeedMul = true;
+            int count = 0;
+            int reloadcount = 0;
+            cfg.open(files[i], ios::in);
+            string Strbuf = getFileName(files[i]);
+            WandC.insert(map<string, MagicWand>::value_type(Strbuf,MagicWand()));//按照文件数量建立对应的数组
+            string a = to_string(i + 1);
+            NumtoFileName.insert(map<string, string>::value_type(a, Strbuf));
+            fileName.push_back(Strbuf);
+            while (getline(cfg, bufStr)) {
+                if (bufStr.find("AbilityComponent") != -1  || bufStr.find("ItemActionComponent") != -1 || bufStr.find("gun_config") != -1) {//找不到是-1，找到了不是-1
+                    if (bufStr.find("gun_config") != -1 && reloadcount == 0) {
+                        reloadcount++;
+                        WirteReload = true;
+                        continue;
+                    }
+                    else if (bufStr.find("gun_config") != -1) {
+                        WirteReload = false;
+                        continue;
+                    }
+                    if (count == 0) {
+                        count++;
+                        WirteMode = true;
+                        WirteSpell = true;
+                        WirteReload = false;
+                        if (bufStr.find("AbilityComponent") != -1) {
+                            WirteSpell = false;
+                        }
+                    }
+                    else {
+                        count = 0;
+                        WirteMode = false;
+                        WirteReload = false;
+                    }
+                    continue;
+                }
+                if (WirteMode) {
+                    if (bufStr.find("mana_max") != -1) {
+                        WandC[Strbuf].manaMax = getPar(bufStr);
+                    }
+                    else if (bufStr.find("mana_charge_speed") != -1) {
+                        WandC[Strbuf].manaChargeSpeed = getPar(bufStr);
+                    }
+                    else if (bufStr.find("mana") != -1 && WirteMana) {
+                        WirteMana = false;
+                        WandC[Strbuf].mana = getPar(bufStr);
+                    }
+                    else if (bufStr.find("sprite_file") != -1 && WirteSprite) {
+                        WirteSprite = false;
+                        WandC[Strbuf].spriteFile = getPar(bufStr);
+                    }
+                    else if (bufStr.find(" speed_multiplier=") != -1 && WirteSpeedMul){
+                        WirteSpeedMul = false;
+                        WandC[Strbuf].speedMultiplier = getPar(bufStr);
+                    }
+                    else if (bufStr.find("spread_degrees") != -1) {
+                        WandC[Strbuf].spreadDegrees = getPar(bufStr);
+                    }
+                    else if (bufStr.find("reload_time") != -1 && WirteReload) {
+                        WandC[Strbuf].reloadTime = getPar(bufStr);
+                    }
+                    else if (bufStr.find("deck_capacity") != -1) {
+                        WandC[Strbuf].deckCapacity = getPar(bufStr);
+                    }
+                    else if (bufStr.find("fire_rate_wait") != -1) {
+                        WandC[Strbuf].fireRateWait = getPar(bufStr);
+                    }
+                    else if (bufStr.find("shuffle_deck_when_empty") != -1) {
+                        if (getPar(bufStr) == "0") {
+                            WandC[Strbuf].stateShuffled = "否";
+                        }
+                        else {
+                            WandC[Strbuf].stateShuffled = "是";
+                        }
+                    }
+                    else if (bufStr.find("action_id") != -1 && WirteSpell) {
+                        string sbnolla = getPar(bufStr);
+                        if (sbnolla == "LASER_LUMINOUS_DRILL") {
+                            sbnolla = "luminous_drill_timer";
+                        }
+                        WandC[Strbuf].wandSpell.push_back(tranObj.getTran("action_" + toLower(sbnolla), "zh-cn"));//将获取的参数转成小写，然后获得翻译文本，然后再写入
+                        
+                    }
+                }
+            }
+            cfg.close();
+        }
+    }
+    void getWandList() {
+        printf("文件总数:%d\n", (int)fileName.size());
+        for (int i = 0; i < fileName.size(); i++) {
+            printf("%d.%s\n", i+1, fileName[i].c_str());
+        }
+    }
+    void getWand(string par) {
+        if (WandC.count(NumtoFileName[par]) == 0) {
+            printf("查无为此序号的法杖数据:%s\n", par.c_str());
+        }
+        else {
+            printf("\n文件:%s\n\n", NumtoFileName[par].c_str());
+            WandC[NumtoFileName[par]].PrintWandList();
+            printf("\n");
+        }
+    }
+private:
+    string getPar(string str) {//获取参数
+        int pos = str.find('"');
+        string buf = "";
+        for (int i = pos+1; i < str.length(); i++) {
+            if (str[i] != '"') {
+                buf += str[i];
+            }
+            else {
+                return buf;//判断到直接返回值
+            }
+        }
+    }
+    void getFileNames(string path, vector<string>& files)//获得文件夹下所有文件
+    {
+        //文件句柄
+        intptr_t hFile = 0;
+        //文件信息
+        struct _finddata_t fileinfo;
+        string p;
+        if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
+        {
+            do
+            {
+                if ((fileinfo.attrib & _A_SUBDIR))
+                {
+                    if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+                        getFileNames(p.assign(path).append("\\").append(fileinfo.name), files);
+                }
+                else
+                {
+                    files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+                }
+            } while (_findnext(hFile, &fileinfo) == 0);
+            _findclose(hFile);
+        }
+    }
+    map<string, MagicWand>WandC;//第一个存文件名，第二个存法杖属性 AbilityComponent gunaction_config ItemActionComponent要读
+    vector<string> files;
+    vector<string> fileName;
+    map<string,string>NumtoFileName;
+};        
 
 vector<string> getCommond(const char* ask) {//返回命令数组
     printf("%s", ask);
@@ -301,6 +552,10 @@ string getFilePath(string Path) {//把字符串中的系统变量转换成对应
             while (Path[i] != '%') {
                 sysBuf += Path[i];
                 i++;
+                if (i > Path.length()-1) {
+                    cerr << "错误:某字符串中的系统变量只有开始符没有结束符" << endl;
+                    break;
+                }
             }
             if (getenv(sysBuf.c_str())) {
                 sysBuf = getenv(sysBuf.c_str());
@@ -321,8 +576,10 @@ string delFirst(string par) {
 }
 
 bool LineGetOut(string ask) {
+    string bufA;
     while (true) {
-        string bufA = getCommond(ask.c_str())[0];
+        printf("%s", ask.c_str());
+        getline(cin, bufA);
         if (bufA == "y") {
             return false;
         }
@@ -332,6 +589,40 @@ bool LineGetOut(string ask) {
         else {
             printf("你输入的不是y或者n，请重新输入\n");
         }
+    }
+}
+
+string Stamp2Time(long long timestamp)//文件的时间戳转换为时间
+{
+    time_t tick = (time_t)(timestamp);
+    struct tm tm;
+    char s[40];
+    localtime_s(&tm, &tick);
+    strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &tm);
+    return s;
+}
+
+void getSubdirs(string path, vector<struct _finddata_t>& files)//获得某一目录下的所有文件夹
+{
+    long long hFile = 0;
+    struct _finddata_t fileinfo;
+    std::string p;
+    if ((hFile = _findfirst(p.assign(path).append("/*").c_str(), &fileinfo)) != -1)
+    {
+        do
+        {
+            if ((fileinfo.attrib & _A_SUBDIR))
+            {
+                if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+                    files.push_back(fileinfo);
+            }
+            else
+            {
+                ;
+            }
+        } while (_findnext(hFile, &fileinfo) == 0);
+
+        _findclose(hFile);
     }
 }
 
@@ -351,22 +642,59 @@ int returnIntOrDef(string par,string num) {
     printf("配置文件中的参数:%s，不为纯数字，返回默认值0", par.c_str());
     return 0;
 }
+bool autoSaveOpenOrNo = false;
+atomic<int> timeCount = 0;
+void autoSaveFun(int time,string saveName,cfgClass *cfgObj) {
+    autoSaveOpenOrNo = true;
+    cfgClass cfgObj1 = *cfgObj;
+    int timeCountLT = time*60;//分钟换算成秒
+    while (autoSaveOpenOrNo) {
+        this_thread::sleep_for(std::chrono::seconds(1));
+        timeCount++;
+        if (timeCount == timeCountLT) {
+            printf("\n自动保存开始...\n");
+            timeCount = 0;
+            string buf = GetExePath() + getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName);
+            if (_access(buf.c_str(), 0) != -1) {//如果有了该文件夹，那么就删除然后重新生成
+                string buf2 = "rmdir " + GetExePath() + "\\" + delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + saveName + " /s /q");
+                system(buf2.c_str());
+                buf2 = delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName));
+                printf("自动保存:原保存的名为%s的存档已删除\n", saveName.c_str());
+                //int flag = _rmdir(buf2.c_str());//删除文件夹
+                int flag = _mkdir(buf2.c_str());//生成文件夹
+            }
+            else {//如果没有该文件夹，那么就生成一个
+                string buf2 = delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName));
+                int flag = _mkdir(buf2.c_str());//生成文件夹
+            }
+            string copyFile = "xcopy " + getFilePath(cfgObj1.getParameter("save00Path")) + "\\save00 " + GetExePath() + getFilePath(cfgObj1.getParameter("savePath") + "\\" + saveName) + " /s /f /h /q /y";
+            system(copyFile.c_str());
+            printf("自动保存:名为%s的存档保存完成！\n", saveName.c_str());
+            printf("下一次自动保存将在%d分钟后开始\n输入指令:", time);
+        }
+    }
+    timeCount = 0;
+    return;
+}
 
 int main()
 {
-    SetConsoleTitle(L"Noita控制台多功能工具v1.0.0");
+    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1");
     system("chcp 65001");//改字符编码
     system("cls");
-    //translationsLoad tranObj;
+    translationsLoad tranObj;
     cfgClass cfgObj;
+    BoneFileRead BoneFile = BoneFileRead(getFilePath(cfgObj.getParameter("save00Path")) + "\\save00\\persistent\\bones_new", tranObj);
     string A = GetExePath() + getFilePath(cfgObj.getParameter("savePath"));//路径
+    thread autoSave;
+    int saveTime = 0;;
     const char* dir = A.c_str();
     if (_access(dir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
         int flag = _mkdir(delFirst(getFilePath(cfgObj.getParameter("savePath"))).c_str());//生成文件夹
     }
-    printf("输入help查看帮助 版本为v1.0.0\n");
+    printf("输入help查看帮助 版本为v1.0.1\n");
     printf("本程序的Github仓库链接:https://github.com/KagiamamaHIna/NoitaConsoleTools 可以前来下最新版本或者查看源代码\n本程序使用MIT许可证\n\n");
-    while(true){
+    while (true) {
         vector<string> Commond = getCommond("输入指令:");
         if (Commond[0] == "save") {//save指令
             bool out = false;
@@ -402,7 +730,7 @@ int main()
                     string buf2 = "rmdir " + GetExePath() + "\\" + delFirst(getFilePath(cfgObj.getParameter("savePath")) + "\\" + Commond[1] + " /s /q");
                     system(buf2.c_str());
                     buf2 = delFirst(getFilePath(cfgObj.getParameter("savePath")) + "\\" + getFilePath(Commond[1]));
-                    printf("原保存的名为%s的存档已删除\n",Commond[1].c_str());
+                    printf("原保存的名为%s的存档已删除\n", Commond[1].c_str());
                     //int flag = _rmdir(buf2.c_str());//删除文件夹
                     int flag = _mkdir(buf2.c_str());//生成文件夹
                 }
@@ -410,9 +738,9 @@ int main()
                     string buf2 = delFirst(getFilePath(cfgObj.getParameter("savePath")) + "\\" + getFilePath(Commond[1]));
                     int flag = _mkdir(buf2.c_str());//生成文件夹
                 }
-                string copyFile = "xcopy " + getFilePath(cfgObj.getParameter("save00Path")) + "\\save00 " + GetExePath() + getFilePath(cfgObj.getParameter("savePath") + "\\"+ Commond[1]) + " /s /f /h /q /y";
+                string copyFile = "xcopy " + getFilePath(cfgObj.getParameter("save00Path")) + "\\save00 " + GetExePath() + getFilePath(cfgObj.getParameter("savePath") + "\\" + Commond[1]) + " /s /f /h /q /y";
                 system(copyFile.c_str());
-                printf("名为%s的存档保存完成！\n",Commond[1].c_str());
+                printf("名为%s的存档保存完成！\n", Commond[1].c_str());
             }
         out:;
         }
@@ -460,7 +788,7 @@ int main()
                 printf("读取完成！\n");
             }
             else {
-                string copyFile = "xcopy " + GetExePath() + getFilePath(cfgObj.getParameter("savePath") + "\\" + Commond[1])+ " " + getFilePath(cfgObj.getParameter("save00Path")) + "\\save00" + " /s /f /h /q /y";
+                string copyFile = "xcopy " + GetExePath() + getFilePath(cfgObj.getParameter("savePath") + "\\" + Commond[1]) + " " + getFilePath(cfgObj.getParameter("save00Path")) + "\\save00" + " /s /f /h /q /y";
                 system(copyFile.c_str());
                 printf("读取完成！\n");
             }
@@ -481,6 +809,108 @@ int main()
                 printf("恢复完成！\n");
             }
         }
+        else if (Commond[0] == "savelist") {
+            int count114514 = 0;
+            vector<struct _finddata_t> files;
+            string saveFile = GetExePath() + getFilePath(cfgObj.getParameter("savePath"));
+            getSubdirs(saveFile, files);
+            printf("\n存档总数:%d\n\n", (int)files.size());
+            ;            for (int i = 0; i < files.size(); i++) {
+                count114514 = 1;
+                printf("%d.%s\n存储时间:%s\n", i + 1, files[i].name, Stamp2Time(files[i].time_create).c_str());
+
+            }
+            if (count114514) {
+                printf("\n");
+            }
+        }
+        else if (Commond[0] == "delsave") {
+            if (Commond.size() > 1) {
+                string delPath = GetExePath() + getFilePath(cfgObj.getParameter("savePath")) + "\\" + Commond[1];//路径
+                const char* delPathdir = delPath.c_str();
+                if (_access(delPathdir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
+                    printf("错误:存档%s不存在\n", Commond[1].c_str());
+                }
+                else {
+                    bool isDelorNo = LineGetOut("请输入y确认删除，输入n则不删除该存档:");
+                    if (isDelorNo) {
+                        goto No;
+                    }
+                    string delPathbuf2 = "rmdir " + delPath + " /s /q";
+                    system(delPathbuf2.c_str());
+                    printf("存档%s删除完成!\n", Commond[1].c_str());
+                }
+            }
+            else {
+                printf("错误:缺失第二个参数，即存档名\n");
+            }
+        No:;
+        }
+        else if (Commond[0] == "bonelist") {
+            BoneFile.getWandList();
+            printf("使用指令:bone (对应文件序号) 读取对应老古法杖文件\n");
+        }
+        else if (Commond[0] == "bone") {
+            if (Commond.size() > 1) {
+                BoneFile.getWand(Commond[1]);
+            }
+            else {
+                printf("错误:缺失第二个参数，是老古法杖序号\n");
+            }
+        }
+        else if (Commond[0] == "reboneread") {
+            BoneFile = BoneFileRead(getFilePath(cfgObj.getParameter("save00Path")) + "\\save00\\persistent\\bones_new", tranObj);
+            printf("老古的法杖文件已经重新加载完成！\n");
+        }
+        else if (Commond[0] == "autosave") {
+            if (Commond.size() == 2) {//第二个为存档名，第三个为时间
+                autoSave = thread(autoSaveFun, 30, Commond[1], &cfgObj);
+                autoSave.detach();
+                saveTime = 30;
+                printf("已启动自动存档，将每隔30分钟存储一次名为%s的存档\n", Commond[1].c_str());
+            }
+            else if (Commond.size() > 2) {
+                if (Commond[2].length() < 10 && isNumber(Commond[2]) || isZero(Commond[2])) //数字长度判断和零的判断，避免异常
+                {
+                    if (isNumber(Commond[2])) {
+                        autoSave = thread(autoSaveFun, stoi(Commond[2]), Commond[1], &cfgObj);
+                        autoSave.detach();//分离
+                        saveTime = stoi(Commond[2]);
+                        printf("已启动自动存档，将每隔%s分钟存储一次名为%s的存档\n",Commond[2].c_str(),Commond[1].c_str());
+                    }
+                    else {
+                        printf("错误:时间的参数不为纯数字\n");
+                    }
+                }
+                else if (!isNumber(Commond[2])) {//字符串过长不显示数字过大
+                    printf("错误:时间的参数不为纯数字\n");
+                }
+                else {
+                    printf("错误:数字过大(>999999999)\n");
+                }
+            }
+            else {
+                printf("错误:参数不全\n");
+            }
+        }
+        else if (Commond[0] == "nextsave") {
+            if (autoSaveOpenOrNo) {
+                float isNextTime = (float)(saveTime*60 - timeCount) / 60.0;
+                printf("距离下次存档还有%f分钟\n", isNextTime);
+            }
+            else {
+                printf("未开启自动存档\n");
+            }
+        }
+        else if (Commond[0] == "closesave") {
+            if (autoSaveOpenOrNo) {
+                autoSaveOpenOrNo = false;
+                printf("已关闭自动存档\n");
+            }
+            else {
+                printf("未开启自动存档\n");
+            }
+        }
         else if (Commond[0] == "exit" || Commond[0] == "quit") {
             break;
         }
@@ -489,6 +919,15 @@ int main()
             printf("2.load指令，用法load (可选参数)，用法和save指令一致，save 00保存了名为00的存档的话，那么输入load 00即可读取这个存档\n\n");
             printf("3.unload指令，在配置文件里开启此功能后(默认打开)，则在load完存档后可以使用，用处是加载刚才被覆盖掉的存档\n\n");
             printf("4.exit和quit指令，用法exit 或 quit，用处是关闭程序\n\n");
+            printf("5.savelist指令，用法savelist，返回存档列表\n\n");
+            printf("6.delsave指令，用法delsave 存档名，删除特定存档\n\n");
+            printf("7.bonelist指令，用法bonelist，返回老古法杖文件列表及其序号\n\n");
+            printf("8.bone指令，用法bone 老古法杖序号，读取某一老古法杖其数据并打印\n\n");
+            printf("9.rebonelist指令，用法rebonelist,如果老古法杖文件已经改变，那么输入这个指令可以重新加载\n\n");
+            printf("10.autosave指令，用法autosave (参数) (可选参数),自动存档的指令，第一个参数是存档名，\n第二个参数是每隔时间，如果不填写则是默认每隔30分钟\n\n");
+            printf("11.closesave指令，用法closesave,输入后关闭自动存档\n\n");
+            printf("12.nextsave指令，用法nextsave,返回距离下次自动存档还剩时间\n\n");
+
         }
         else {
             cout << "错误:未知的指令:" << Commond[0] << endl;
