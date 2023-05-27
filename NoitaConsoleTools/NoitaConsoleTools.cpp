@@ -201,11 +201,11 @@ public:
         cfg.close();//关闭文件
         for (int i = 0; i < cfgNumInt2.size(); i++) {
             if (cfgNumInt2[i] != 0) {
-                cerr << "警告:参数" << cfgStr[i] << "在配置文件中被重复定义了" << cfgNumInt2[i] << "次，" << "程序将选择最后被定义的数字:" << cfgNumInt1[i] << endl;
+                cerr << "警告:参数" << cfgStr[i] << "在配置文件中被重复定义了" << cfgNumInt2[i] << "次，" << "程序将选择最后被定义的参数:" << cfgNumInt1[i] << endl;
             }
         }
     }
-    string getParameter(string Par) {//输入字符串，获取参数
+    string getParameter(string Par) const {//输入字符串，获取参数
         if (!cfgStr.empty()) {
             for (int i = 0; i < cfgStr.size(); i++) {
                 if (Par == cfgStr[i]) {
@@ -254,7 +254,9 @@ public:
             int count = 0;//判断"用的
             int count2 = 0;//写入用的
             int count3 = 0;//判断是否为空用的
-            for (int i = 0; i < bufStr.length(); i++) {
+            //for (int i = 0; i < bufStr.length(); i++) {
+            int i = 0;
+            while (bufStr[i]) {//遍历字符 因为for循环还需要返回字符串长度，如果用while循环的话，因为字符串结束符是00，相当于false，所以理论上可以不需要知道字符串长度，也就是可以加快读取速度
                 if (bufStr[i] == '"') {
                     isLoad = false;//如果判断到"就即使判断到,也不跳过，正常写入
                     count++;//自增判断是否到第二个
@@ -265,18 +267,18 @@ public:
                 }
                 if (bufStr[i] == ',' && isLoad) {
                     if (isHead) {//存入头
-                        tranMap.insert(map<string, vector<string>>::value_type(bufStr2, vector<string>(13)));
+                        tranMap.insert(map<string, vector<string>>::value_type(bufStr2, vector<string>(11)));
                         HeadCache = bufStr2;
                         bufStr2 = "";
                         isHead = false;
                     }
-                    else if (count3 < 1 && count2 != 13) {
+                    else if (count3 < 1 && count2 != 11) {
                         tranMap[HeadCache][count2] = bufStr2;
                         bufStr2 = "";
                         count2++;
                         count3++;//写入数据
                     }
-                    else if (count2 == 13) goto END;//如果没有数据了就结束这次循环
+                    else if (count2 == 11) goto END;//如果没有数据了就结束这次循环
                     else {
                         tranMap[HeadCache][count2] = tranMap[HeadCache][0];//如果是,,的这种组合，就直接赋值英文默认值
                         count2++;
@@ -286,19 +288,20 @@ public:
                     count3 = 0;
                     bufStr2 = bufStr2 + bufStr[i];//拼接字符串
                 }
+                i++;
             }
         END:;
         }
         cfg.close();
     }
-    string getTran(string Par, string lau) {//第一个参数是key，第二个参数是语言
+    string getTran(string Par, string lau) const {//第一个参数是key，第二个参数是语言
         if (laug.count(lau) == 0) {//en,ru,pt-br,es-es,de,fr-fr,it,pl,zh-cn,jp,ko
             return "语言错误,你输入的是:" + lau;
         }
         if (tranMap.count(Par) == 0) {
             return "翻译表内查无此数据,key:" + Par;
         }
-        return this->tranMap[Par][laug[lau]];
+        return this->tranMap.find(Par)->second.at(laug.find(lau)->second);//增加了程序的健壮性的改动，和原代码等价
     }
 private:
     map<string, vector<string>>tranMap;//翻译表
@@ -307,7 +310,7 @@ private:
 
 class MagicWand {
 private:
-    int getFrNumber(string par) {//换算负数或者是正数
+    int getFrNumber(string par) const {//换算负数或者是正数
         string bufParStr = "";
         if (par[0] == '-') {
             for (int i = 1; i < par.length(); i++) {
@@ -318,7 +321,7 @@ private:
         return stoi(par);
     }
 public:
-    void PrintWandList() {
+    void PrintWandList() const {
         printf("法杖当前蓝量:%s\n", mana.c_str());
         printf("法杖蓝量上限:%s\n", manaMax.c_str());
         printf("法杖回蓝速度:%s\n", manaChargeSpeed.c_str());
@@ -363,7 +366,7 @@ public:
 
 class BoneFileRead {
 public:
-    BoneFileRead(string path, translationsLoad& tranObj) {//一坨四
+    BoneFileRead(string path,const translationsLoad& tranObj) {//一坨四
         string SwapPath = slashSwap(path);
         getFileNames(SwapPath, files);
         string bufStr;//读行缓存
@@ -464,7 +467,7 @@ public:
             cfg.close();
         }
     }
-    void getWandList() {
+    void getWandList() const {
         printf("文件总数:%d\n", (int)fileName.size());
         for (int i = 0; i < fileName.size(); i++) {
             printf("%d.%s\n", i+1, fileName[i].c_str());
@@ -545,7 +548,8 @@ vector<string> getCommond(const char* ask) {//返回命令数组
 string getFilePath(string Path) {//把字符串中的系统变量转换成对应的字符串
     string sysBuf = "";
     string ReturnStr = "";
-    for (int i = 0; i < Path.length(); i++) {//分割参数
+    int i = 0;
+    while(Path[i]) {//分割参数
         if (Path[i] != '%') {
             ReturnStr += Path[i];
         }
@@ -565,6 +569,7 @@ string getFilePath(string Path) {//把字符串中的系统变量转换成对应
             ReturnStr += sysBuf;
             sysBuf = "";
         }
+        i++;
     }
     return ReturnStr;
 }
@@ -646,9 +651,8 @@ int returnIntOrDef(string par,string num) {
 }
 bool autoSaveOpenOrNo = false;
 atomic<int> timeCount = 0;
-void autoSaveFun(int time,string saveName,cfgClass *cfgObj) {
+void autoSaveFun(int time,string saveName,const cfgClass *cfgObj) {
     autoSaveOpenOrNo = true;
-    cfgClass cfgObj1 = *cfgObj;
     int timeCountLT = time*60;//分钟换算成秒
     while (autoSaveOpenOrNo) {
         this_thread::sleep_for(std::chrono::seconds(1));
@@ -656,20 +660,20 @@ void autoSaveFun(int time,string saveName,cfgClass *cfgObj) {
         if (timeCount == timeCountLT) {
             printf("\n自动保存开始...\n");
             timeCount = 0;
-            string buf = GetExePath() + getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName);
+            string buf = GetExePath() + getFilePath(cfgObj->getParameter("savePath")) + "\\" + getFilePath(saveName);
             if (_access(buf.c_str(), 0) != -1) {//如果有了该文件夹，那么就删除然后重新生成
-                string buf2 = "rmdir " + GetExePath() + "\\" + delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + saveName + " /s /q");
+                string buf2 = "rmdir " + GetExePath() + "\\" + delFirst(getFilePath(cfgObj->getParameter("savePath")) + "\\" + saveName + " /s /q");
                 system(buf2.c_str());
-                buf2 = delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName));
+                buf2 = delFirst(getFilePath(cfgObj->getParameter("savePath")) + "\\" + getFilePath(saveName));
                 printf("自动保存:原保存的名为%s的存档已删除\n", saveName.c_str());
                 //int flag = _rmdir(buf2.c_str());//删除文件夹
                 int flag = _mkdir(buf2.c_str());//生成文件夹
             }
             else {//如果没有该文件夹，那么就生成一个
-                string buf2 = delFirst(getFilePath(cfgObj1.getParameter("savePath")) + "\\" + getFilePath(saveName));
+                string buf2 = delFirst(getFilePath(cfgObj->getParameter("savePath")) + "\\" + getFilePath(saveName));
                 int flag = _mkdir(buf2.c_str());//生成文件夹
             }
-            string copyFile = "xcopy " + getFilePath(cfgObj1.getParameter("save00Path")) + "\\save00 " + GetExePath() + getFilePath(cfgObj1.getParameter("savePath") + "\\" + saveName) + " /s /f /h /q /y";
+            string copyFile = "xcopy " + getFilePath(cfgObj->getParameter("save00Path")) + "\\save00 " + GetExePath() + getFilePath(cfgObj->getParameter("savePath") + "\\" + saveName) + " /s /f /h /q /y";
             system(copyFile.c_str());
             printf("自动保存:名为%s的存档保存完成！\n", saveName.c_str());
             printf("下一次自动保存将在%d分钟后开始\n输入指令:", time);
@@ -681,11 +685,11 @@ void autoSaveFun(int time,string saveName,cfgClass *cfgObj) {
 
 int main()
 {
-    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.1");
+    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.2");
     system("chcp 65001");//改字符编码
     system("cls");
-    translationsLoad tranObj;
-    cfgClass cfgObj;
+    const translationsLoad tranObj;
+    const cfgClass cfgObj;
     BoneFileRead BoneFile = BoneFileRead(getFilePath(cfgObj.getParameter("save00Path")) + "\\save00\\persistent\\bones_new", tranObj);
     string A = GetExePath() + getFilePath(cfgObj.getParameter("savePath"));//路径
     thread autoSave;
@@ -694,7 +698,7 @@ int main()
     if (_access(dir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
         int flag = _mkdir(delFirst(getFilePath(cfgObj.getParameter("savePath"))).c_str());//生成文件夹
     }
-    printf("输入help查看帮助 版本为v1.0.1.1\n");
+    printf("输入help查看帮助 版本为v1.0.1.2\n");
     printf("本程序的Github仓库链接:https://github.com/KagiamamaHIna/NoitaConsoleTools 可以前来下最新版本或者查看源代码\n本程序使用MIT许可证\n\n");
     while (true) {
         vector<string> Commond = getCommond("输入指令:");
@@ -817,7 +821,7 @@ int main()
             string saveFile = GetExePath() + getFilePath(cfgObj.getParameter("savePath"));
             getSubdirs(saveFile, files);
             printf("\n存档总数:%d\n\n", (int)files.size());
-            ;            for (int i = 0; i < files.size(); i++) {
+            for (int i = 0; i < files.size(); i++) {
                 count114514 = 1;
                 printf("%d.%s\n存储时间:%s\n", i + 1, files[i].name, Stamp2Time(files[i].time_create).c_str());
 
@@ -865,34 +869,39 @@ int main()
             printf("老古的法杖文件已经重新加载完成！\n");
         }
         else if (Commond[0] == "autosave") {
-            if (Commond.size() == 2) {//第二个为存档名，第三个为时间
-                autoSave = thread(autoSaveFun, 30, Commond[1], &cfgObj);
-                autoSave.detach();
-                saveTime = 30;
-                printf("已启动自动存档，将每隔30分钟存储一次名为%s的存档\n", Commond[1].c_str());
-            }
-            else if (Commond.size() > 2) {
-                if (Commond[2].length() < 10 && isNumber(Commond[2]) || isZero(Commond[2])) //数字长度判断和零的判断，避免异常
-                {
-                    if (isNumber(Commond[2])) {
-                        autoSave = thread(autoSaveFun, stoi(Commond[2]), Commond[1], &cfgObj);
-                        autoSave.detach();//分离
-                        saveTime = stoi(Commond[2]);
-                        printf("已启动自动存档，将每隔%s分钟存储一次名为%s的存档\n",Commond[2].c_str(),Commond[1].c_str());
+            if (!autoSaveOpenOrNo) {
+                if (Commond.size() == 2) {//第二个为存档名，第三个为时间
+                    autoSave = thread(autoSaveFun, 30, Commond[1], &cfgObj);
+                    autoSave.detach();
+                    saveTime = 30;
+                    printf("已启动自动存档，将每隔30分钟存储一次名为%s的存档\n", Commond[1].c_str());
+                }
+                else if (Commond.size() > 2) {
+                    if (Commond[2].length() < 10 && isNumber(Commond[2]) || isZero(Commond[2])) //数字长度判断和零的判断，避免异常
+                    {
+                        if (isNumber(Commond[2])) {
+                            autoSave = thread(autoSaveFun, stoi(Commond[2]), Commond[1], &cfgObj);
+                            autoSave.detach();//分离
+                            saveTime = stoi(Commond[2]);
+                            printf("已启动自动存档，将每隔%s分钟存储一次名为%s的存档\n", Commond[2].c_str(), Commond[1].c_str());
+                        }
+                        else {
+                            printf("错误:时间的参数不为纯数字\n");
+                        }
                     }
-                    else {
+                    else if (!isNumber(Commond[2])) {//字符串过长不显示数字过大
                         printf("错误:时间的参数不为纯数字\n");
                     }
-                }
-                else if (!isNumber(Commond[2])) {//字符串过长不显示数字过大
-                    printf("错误:时间的参数不为纯数字\n");
+                    else {
+                        printf("错误:数字过大(>999999999)\n");
+                    }
                 }
                 else {
-                    printf("错误:数字过大(>999999999)\n");
+                    printf("错误:参数不全\n");
                 }
             }
             else {
-                printf("错误:参数不全\n");
+                printf("错误:自动存档已经启动\n");
             }
         }
         else if (Commond[0] == "nextsave") {
