@@ -685,7 +685,7 @@ void autoSaveFun(int time,string saveName,const cfgClass *cfgObj) {
 
 int main()
 {
-    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.2");
+    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.3");
     system("chcp 65001");//改字符编码
     system("cls");
     const translationsLoad tranObj;
@@ -698,7 +698,7 @@ int main()
     if (_access(dir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
         int flag = _mkdir(delFirst(getFilePath(cfgObj.getParameter("savePath"))).c_str());//生成文件夹
     }
-    printf("输入help查看帮助 版本为v1.0.1.2\n");
+    printf("输入help查看帮助 版本为v1.0.1.3\n");
     printf("本程序的Github仓库链接:https://github.com/KagiamamaHIna/NoitaConsoleTools 可以前来下最新版本或者查看源代码\n本程序使用MIT许可证\n\n");
     while (true) {
         vector<string> Commond = getCommond("输入指令:");
@@ -864,7 +864,7 @@ int main()
                 printf("错误:缺失第二个参数，是老古法杖序号\n");
             }
         }
-        else if (Commond[0] == "reboneread") {
+        else if (Commond[0] == "rebonelist") {
             BoneFile = BoneFileRead(getFilePath(cfgObj.getParameter("save00Path")) + "\\save00\\persistent\\bones_new", tranObj);
             printf("老古的法杖文件已经重新加载完成！\n");
         }
