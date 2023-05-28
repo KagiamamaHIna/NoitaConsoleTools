@@ -98,6 +98,9 @@ string toUpper(string par) {
 
 string getFileName(string Path) {//从绝对路径里面获得文件名称
     int pos = Path.rfind("\\");
+    if (pos == -1) {
+        pos = Path.rfind("/");
+    }
     string buf = "";
     for (int i = pos + 1; i < Path.length(); i++) {
         buf += Path[i];
@@ -484,10 +487,10 @@ public:
         }
     }
 private:
-    string getPar(string str) {//获取参数
+    string getPar(string str) const {//获取参数
         int pos = str.find('"');
         string buf = "";
-        for (int i = pos+1; i < str.length(); i++) {
+        for (int i = pos + 1; i < str.length(); i++) {
             if (str[i] != '"') {
                 buf += str[i];
             }
@@ -683,9 +686,23 @@ void autoSaveFun(int time,string saveName,const cfgClass *cfgObj) {
     return;
 }
 
+string getPar(string str) {//获取参数
+    int pos = str.find('"');
+    string buf = "";
+    for (int i = pos + 1; i < str.length(); i++) {
+        if (str[i] != '"') {
+            buf += str[i];
+        }
+        else if (i > str.length() - 1) return "error";
+        else {
+            return buf;//判断到直接返回值
+        }
+    }
+}
+
 int main()
 {
-    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.3");
+    SetConsoleTitle(L"Noita控制台多功能工具v1.0.1.4");
     system("chcp 65001");//改字符编码
     system("cls");
     const translationsLoad tranObj;
@@ -698,7 +715,7 @@ int main()
     if (_access(dir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
         int flag = _mkdir(delFirst(getFilePath(cfgObj.getParameter("savePath"))).c_str());//生成文件夹
     }
-    printf("输入help查看帮助 版本为v1.0.1.3\n");
+    printf("输入help查看帮助 版本为v1.0.1.4\n");
     printf("本程序的Github仓库链接:https://github.com/KagiamamaHIna/NoitaConsoleTools 可以前来下最新版本或者查看源代码\n本程序使用MIT许可证\n\n");
     while (true) {
         vector<string> Commond = getCommond("输入指令:");
@@ -818,12 +835,68 @@ int main()
         else if (Commond[0] == "savelist") {
             int count114514 = 0;
             vector<struct _finddata_t> files;
+            vector<struct _finddata_t> save00FilePath;
+            fstream readFile;
+            bool readEnd = true;
+            string buf;
+            string bufPar;
             string saveFile = GetExePath() + getFilePath(cfgObj.getParameter("savePath"));
+            string save00File = getFilePath(cfgObj.getParameter("save00Path")) + "\\save00";
             getSubdirs(saveFile, files);
-            printf("\n存档总数:%d\n\n", (int)files.size());
+            printf("\n关于游戏本身的存档:\n");
+            if (_access(save00File.c_str(), 0) == -1) {
+                printf("未成功找到Noita本身的游戏存档\n");
+            }
+            else {
+                getSubdirs(getFilePath(cfgObj.getParameter("save00Path")), save00FilePath);
+                readFile.open(save00File + "\\world_state.xml", ios::in);
+                while (getline(readFile, buf) && readEnd) {
+                    if (buf.find("session_stat_file") != -1) {
+                        bufPar = getFilePath(cfgObj.getParameter("save00Path")) + "\\save00\\stats\\sessions\\" + getFileName(getPar(buf)) + "_stats.xml";
+                        readFile.close();
+                        readFile.open(bufPar, ios::in);
+                        getline(readFile, bufPar);
+                        bufPar = getPar(bufPar);
+                        readFile.close();
+                        readEnd = false;
+                    }
+                }
+                for (int i = 0; i < save00FilePath.size(); i++) {
+                    string testStr = save00FilePath[i].name;
+                    if (testStr == "save00") {
+                        if (bufPar == "error") {
+                            printf("游戏版本:读取错误\n存储时间:%s", Stamp2Time(save00FilePath[i].time_create).c_str());
+                        }
+                        else {
+                            printf("游戏版本:%s\n存储时间:%s", bufPar.c_str(), Stamp2Time(save00FilePath[i].time_create).c_str());
+                        }
+                        break;
+                    }
+                }
+            }
+            printf("\n\n本程序所存的存档总数:%d\n\n", (int)files.size());
             for (int i = 0; i < files.size(); i++) {
                 count114514 = 1;
-                printf("%d.%s\n存储时间:%s\n", i + 1, files[i].name, Stamp2Time(files[i].time_create).c_str());
+                string saveFileBuf = GetExePath() + getFilePath(cfgObj.getParameter("savePath")) + "\\" + files[i].name;
+                readFile.open(saveFileBuf + "\\world_state.xml", ios::in);
+                readEnd = true;
+                while (getline(readFile, buf) && readEnd) {
+                    if (buf.find("session_stat_file") != -1) {
+                        bufPar = saveFileBuf+ "\\stats\\sessions\\" + getFileName(getPar(buf)) + "_stats.xml";
+                        readFile.close();
+                        readFile.open(bufPar, ios::in);
+                        getline(readFile, bufPar);
+                        bufPar = getPar(bufPar);
+                        readFile.close();
+                        readEnd = false;
+                    }
+                }
+                if (bufPar == "error") {
+                    printf("%d.%s\n游戏版本:读取错误\n存储时间:%s\n", i + 1, files[i].name, Stamp2Time(files[i].time_create).c_str());
+                }
+                else {
+                    printf("%d.%s\n游戏版本:%s\n存储时间:%s\n", i + 1, files[i].name,bufPar.c_str(), Stamp2Time(files[i].time_create).c_str());
+                }
 
             }
             if (count114514) {
