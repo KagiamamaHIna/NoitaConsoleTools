@@ -128,7 +128,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoneFileRead.cpp" />
+    <ClCompile Include="cfgClass.cpp" />
+    <ClCompile Include="clacinfwisp.cpp" />
+    <ClCompile Include="Functions.cpp" />
     <ClCompile Include="NoitaConsoleTools.cpp" />
+    <ClCompile Include="translationsLoad.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BoneFileRead.h" />
+    <ClInclude Include="cfgClass.h" />
+    <ClInclude Include="clacinfwisp.h" />
+    <ClInclude Include="Functions.h" />
+    <ClInclude Include="translationsLoad.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

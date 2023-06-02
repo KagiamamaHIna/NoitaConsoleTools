@@ -18,5 +18,37 @@
     <ClCompile Include="NoitaConsoleTools.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="cfgClass.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="translationsLoad.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="clacinfwisp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Functions.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BoneFileRead.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cfgClass.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="translationsLoad.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Functions.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="clacinfwisp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneFileRead.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
