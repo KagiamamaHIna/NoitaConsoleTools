@@ -108,7 +108,7 @@ string toUpper(string par) {
 
 string getFileName(string Path) {//从绝对路径里面获得文件名称
     int pos = Path.rfind("\\");
-    if (pos == -1) {
+    if (pos == -1) {//如果找不到\就找/
         pos = Path.rfind("/");
     }
     string buf = "";
