@@ -20,7 +20,7 @@
 
 using namespace std;
 
-extern const char* File;
+extern string File;
 extern mutex mtx;
 extern atomic<int>HasAnw;
 extern vector<vector<vector<int>>> infwispCache;
@@ -395,33 +395,33 @@ int main()
                         printf("你输入的乒乓上限值有问题!\n");
                         continue;
                     }
-                    int decLT = getTest(Commond[5]);
+                    int decLT = getTest(Commond[6]);
                     if (decLT == -1) {
                         printf("你输入的红表上限值有问题!\n");
                         continue;
                     }
-                    int helLT = getTest(Commond[6]);
+                    int helLT = getTest(Commond[7]);
                     if (helLT == -1) {
                         printf("你输入的螺旋魔弹上限值有问题!\n");
                         continue;
                     }
-                    int arcLT = getTest(Commond[7]);
+                    int arcLT = getTest(Commond[8]);
                     if (arcLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
-                    int splLT = getTest(Commond[8]);
+                    int splLT = getTest(Commond[9]);
                     if (splLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
-                    int nulLT = getTest(Commond[9]);
+                    int nulLT = getTest(Commond[10]);
                     if (nulLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
                     if (Commond.size() > 10) {
-                        clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT, Commond[10]);
+                        clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT, Commond[11]);
                     }
                     else {
                         clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT, File);
@@ -439,7 +439,7 @@ int main()
                 if (Commond.size() == 1) {
                     clacwisp.clac(cfgObj);
                 }
-                else if (Commond.size() >= 10) {
+                else if (Commond.size() >= 9) {
                     int startNum = getTest(Commond[1]);
                     if (startNum == -1) {
                         printf("你输入的起始值有问题!\n");
@@ -469,33 +469,33 @@ int main()
                         printf("你输入的乒乓上限值有问题!\n");
                         continue;
                     }
-                    int decLT = getTest(Commond[5]);
+                    int decLT = getTest(Commond[6]);
                     if (decLT == -1) {
                         printf("你输入的红表上限值有问题!\n");
                         continue;
                     }
-                    int helLT = getTest(Commond[6]);
+                    int helLT = getTest(Commond[7]);
                     if (helLT == -1) {
                         printf("你输入的螺旋魔弹上限值有问题!\n");
                         continue;
                     }
-                    int arcLT = getTest(Commond[7]);
+                    int arcLT = getTest(Commond[8]);
                     if (arcLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
-                    int splLT = getTest(Commond[8]);
+                    int splLT = getTest(Commond[9]);
                     if (splLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
-                    int nulLT = getTest(Commond[9]);
+                    int nulLT = getTest(Commond[10]);
                     if (nulLT == -1) {
                         printf("你输入的相位弧度上限值有问题!\n");
                         continue;
                     }
                     if (Commond.size() > 10) {
-                        clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT, Commond[10]);
+                        clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT, Commond[11]);
                     }
                     else {
                         clacwisp.clacNoInput(cfgObj, startNum, endNum, SiwtchNum, addLT, pinLT, decLT, helLT, arcLT, splLT, nulLT,File);

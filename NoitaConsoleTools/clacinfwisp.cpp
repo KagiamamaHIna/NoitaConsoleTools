@@ -16,7 +16,7 @@ mutex mtx;
 clock_t ClockStart, ClockEnd;
 fstream file;
 vector<fstream> fileCace;
-const char* File = "infwispList.txt";
+string File = "infwispList.txt";
 atomic<int>HasAnw = 0;
 
 vector<int> HasAnwThread;
@@ -896,6 +896,9 @@ int closeNum = 1;
         int Count = 0;
         int threadNum = 1;
         WriteCache = false;
+        if (fileP == ""){
+            fileP = File;
+        }
         string testInt = cfg.getParameter("threadNum");
         if (testInt != "无参数") {
             int testNum = getTest(testInt);
@@ -925,6 +928,7 @@ int closeNum = 1;
                 break;
             }
             case 2: {
+                isSaveOrNo = 1;
                 File = File2.c_str();
                 printf("tips:接下来将不会在控制台内打印数据，而是将数据保存入根路径/%s 文件中\n", File);
                 break;
