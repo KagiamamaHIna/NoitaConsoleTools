@@ -301,7 +301,7 @@ int closeNum = 1;
                     File2 = getChar("请输入文件路径:");
                     File = File2.c_str();
                 }
-                printf("tips:接下来将不会在控制台内打印数据，而是将数据保存入根路径/%s 文件中\n", File);
+                printf("tips:接下来将不会在控制台内打印数据，而是将数据保存入根路径/%s 文件中\n", File.c_str());
                 break;
             }
             case 3: {
@@ -930,7 +930,7 @@ int closeNum = 1;
             case 2: {
                 isSaveOrNo = 1;
                 File = File2.c_str();
-                printf("tips:接下来将不会在控制台内打印数据，而是将数据保存入根路径/%s 文件中\n", File);
+                printf("tips:接下来将不会在控制台内打印数据，而是将数据保存入根路径/%s 文件中\n", File.c_str());
                 break;
             }
             case 3: {

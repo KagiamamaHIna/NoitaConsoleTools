@@ -66,7 +66,7 @@ void autoSaveFun(int time,string saveName,const cfgClass *cfgObj) {
 
 int main()
 {
-    SetConsoleTitle(L"Noita控制台多功能工具v1.0.3");
+    SetConsoleTitle(L"Noita控制台多功能工具v1.0.3.2");
     system("chcp 65001");//改字符编码
     system("cls");
     const translationsLoad tranObj;
@@ -79,7 +79,7 @@ int main()
     if (_access(dir, 0) == -1) { //判断该文件夹是否存在 ==-1为不存在
         int flag = _mkdir(delFirst(getFilePath(cfgObj.getParameter("savePath"))).c_str());//生成文件夹
     }
-    printf("输入help查看帮助 版本为v1.0.3\n");
+    printf("输入help查看帮助 版本为v1.0.3.2\n");
     printf("本程序的Github仓库链接:https://github.com/KagiamamaHIna/NoitaConsoleTools 可以前来下最新版本或者查看源代码\n本程序使用MIT许可证\n\n");
     clacinfwisp clacwisp;
     while (true) {
@@ -538,8 +538,8 @@ int main()
                         printf("错误:超过访问范围！\n");
                         continue;
                     }
-                    else if (startPos == 0 && endPos == 0) {
-                        printf("错误：怎么想也没有0到0个数据吧\n");
+                    else if (startPos == endPos) {
+                        printf("错误：怎么想也没有%d(不包括)到%d个数据吧\n",startPos,endPos);
                         continue;
                     }
                     int countSize = 0;
@@ -757,7 +757,7 @@ int main()
                     cout << "连锁上限为:" << clacA.splLT << endl;
                     cout << "无害射击上限为:" << clacA.nulLT << endl;
                     cout << "一共有" << HasAnw << "行数据" << endl;
-                    printf("打印了从第%d到第%d行的数据\n\n", startPos, endPos);
+                    printf("打印了从第%d(不包括)到第%d行的数据\n\n", startPos, endPos);
                     /* 将所有的打印完，这个也是测试用的
                     for (int i = 0; i < infwispCache.size(); i++) {
                         for (int j = 0; j != infwispCache[i].size(); j++) {

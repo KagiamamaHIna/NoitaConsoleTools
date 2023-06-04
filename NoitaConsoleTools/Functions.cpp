@@ -129,6 +129,10 @@ vector<string> getCommond(const char* ask) {//返回命令数组
             bufStr = bufStr + commondStr[i];
         }
         else {
+            while (commondStr[i] == ' ') {
+                i++;
+            }
+            i--;//把多余的空格删掉
             comm.push_back(bufStr);
             bufStr = "";
         }
